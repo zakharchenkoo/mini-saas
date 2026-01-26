@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: mini-saas-postgres
+    environment:
+      POSTGRES_DB: mini_saas
+      POSTGRES_USER: minisaas
+      POSTGRES_PASSWORD: minisaas
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mini-saas-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0.7
+    container_name: mini-saas-keycloak
+    command: start-dev
+    environment:
+      # Admin credentials
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+
+      # Database configuration
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/mini_saas
+      KC_DB_USERNAME: minisaas
+      KC_DB_PASSWORD: minisaas
+
+      # Hostname configuration
+
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+
+
+    ports:
+      - "8088:8080"
+      - "8443:8443"
+    depends_on:
+      - postgres
+    networks:
+      - mini-saas-network
+
+volumes:
+  postgres_data:
+
+networks:
+  mini-saas-network:
+    driver: bridge
